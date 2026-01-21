@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+    /* ... (Existing TOP NAVIGATION & HERO CSS - No Changes) ... */
+    .header-wrapper { padding: 40px 50px; display: flex; justify-content: flex-end; align-items: center; }
+    .social-icons-top { display: flex; gap: 20px; }
+    .social-icons-top img { width: 18px; height: 18px; filter: grayscale(100%); opacity: 0.5; transition: 0.3s; }
+    .social-icons-top a:hover img { filter: grayscale(0%); opacity: 1; transform: translateY(-2px); }
+
+    .scroll-indicator {
+        position: absolute; left: 20px; top: 220px; transform: rotate(90deg);
+        transform-origin: left top; font-size: 0.7rem; letter-spacing: 5px; 
+        color: #b5a499; text-transform: uppercase; pointer-events: none;
+    }
+
+    .hero-container { display: flex; align-items: center; padding: 20px 8% 60px 5%; min-height: 75vh; gap: 40px; }
+    .hero-text { flex: 1.2; }
+    .hero-text h1 { font-size: 5rem; line-height: 1.1; margin-bottom: 25px; color: #2d2a28; }
+    .hero-text h1 span { color: #b5a499; font-style: italic; }
+    .hero-text p { font-size: 1rem; color: #777; max-width: 410px; line-height: 1.8; }
+
+    .hero-img { 
+        width: 100%; height: 600px; object-fit: cover; border-radius: 4px;
+        clip-path: ellipse(100% 115% at 50% 50%); box-shadow: 20px 20px 0px #e5e0dd;
+    }
+
+    /* RECENT SECTION */
+    .recent-section { padding: 40px 8% 80px; overflow: hidden; }
+    .recent-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 50px; }
+    .recent-header h2 { font-size: 3.5rem; color: #b5a499; font-weight: 300; }
+    .recent-header a { color: #1a1a1a; text-decoration: none; font-size: 0.8rem; letter-spacing: 2px; font-weight: bold; text-transform: uppercase; }
+
+    /* DYNAMIC SLIDER STYLING */
+    .slider-viewport { width: 100%; position: relative; padding: 60px 0; }
+    .slider-track { display: flex; align-items: center; will-change: transform; }
+    .slider-item {
+        min-width: 25%; /* 4 images visible */
+        padding: 0 10px;
+        transition: transform 0.8s ease;
+        opacity: 1;
+        transform: scale(0.9);
+        cursor: zoom-in;
+    }
+    .slider-item.active { transform: scale(1.15); z-index: 10; }
+    .slider-item img { width: 100%; height: 280px; object-fit: cover; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+
+    @media (max-width: 992px) {
+        .slider-item { min-width: 50%; } /* 2 images visible on tablets/mobile */
+        .hero-text h1 { font-size: 3.5rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-wrapper">
+    <div class="social-icons-top">
+        <a href="#" aria-label="Instagram"><img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram"></a>
+        <a href="#" aria-label="Facebook"><img src="https://cdn-icons-png.flaticon.com/512/174/174848.png" alt="Facebook"></a>
+        <a href="#" aria-label="Twitter"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="Twitter"></a>
+    </div>
+</div>
+
+<div class="scroll-indicator">Scroll Down &mdash;</div>
+
+<div class="hero-container">
+    <div class="hero-text">
+        <p class="small text-uppercase mb-2" style="letter-spacing: 4px; color: #b5a499;">Visuals</p>
+        <h1>Capturing <br>your <span>Priceless</span> <br>Emotions.</h1>
+        <p>Grab the opportunity to capture memories that you will treasure for a lifetime. Why be ordinary when you can be extraordinary?</p>
+    </div>
+    <div style="flex: 1;">
+        <img src="{{ url_for('static', filename='landing_page_background.jpg') }}" class="hero-img" alt="Featured Photography">
+    </div>
+</div>
+
+<div class="recent-section">
+    <div class="recent-header">
+        <h2>Recent Work</h2>
+        <a href="/categories">View All Work &rarr;</a>
+    </div>
+    
+    <div class="slider-viewport">
+        <div class="slider-track" id="recentSlider">
+            {% for photo in photos[:10] %}
+            <div class="slider-item" onclick="openFullscreen('{{ url_for('static', filename='uploads/' + photo.url) }}')">
+                <img src="{{ url_for('static', filename='uploads/' + photo.url) }}" alt="Recent Work {{ loop.index }}">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const track = document.getElementById('recentSlider');
+        const originalItems = Array.from(track.querySelectorAll('.slider-item'));
+        const n = originalItems.length; // 10
+        
+        // 1. TRIPLE CLONING: Create 3 sets of the 10 images (30 total)
+        // This ensures the sequence 1...10...1...10...1...10 is always present
+        for (let i = 0; i < 2; i++) {
+            originalItems.forEach(item => {
+                const clone = item.cloneNode(true);
+                track.appendChild(clone);
+            });
+        }
+
+        const allItems = track.querySelectorAll('.slider-item');
+        const itemWidth = 25; // 4 images visible
+        let currentIndex = n; // Start at the beginning of the second set (index 10)
+        let isTransitioning = false;
+
+        function updateSlider(immediate = false) {
+            if (immediate) {
+                track.style.transition = 'none';
+            } else {
+                track.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+            }
+
+            // Offset to keep the active item in the 3rd slot (50% mark)
+            const offset = 50 - (currentIndex * itemWidth);
+            track.style.transform = `translateX(${offset}%)`;
+
+            // Manage active class for the "zoom" effect
+            allItems.forEach(item => item.classList.remove('active'));
+            if (allItems[currentIndex]) {
+                allItems[currentIndex].classList.add('active');
+            }
+        }
+
+        function nextSlide() {
+            if (isTransitioning) return;
+            
+            currentIndex++;
+            updateSlider();
+
+            // 2. SEAMLESS RE-CENTERING
+            // When we reach the end of the second set (index 20), snap back to index 10
+            if (currentIndex >= 2 * n) {
+                isTransitioning = true;
+                setTimeout(() => {
+                    currentIndex = n;
+                    updateSlider(true); // Jump without animation
+                    isTransitioning = false;
+                }, 800); // Wait for 0.8s transition to finish
+            }
+        }
+
+        // Initialize at the first "1" of the middle set
+        updateSlider(true);
+
+        // Auto-run every 3 seconds
+        setInterval(nextSlide, 3000);
+    });
+</script>
+{% endblock %}

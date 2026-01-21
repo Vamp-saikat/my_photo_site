@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-header">
+    <h1>Our <span>Expeditions</span></h1>
+</div>
+
+<div style="padding: 0 8% 80px;">
+    {% for trip in trips %}
+    <div style="background: white; padding: 40px; margin-bottom: 30px; border-left: 4px solid {% if trip.status == 'Completed' %}#b5a499{% else %}#1a1a1a{% endif %}; box-shadow: 10px 10px 0px #e5e0dd;">
+        <div class="d-flex justify-content-between">
+            <div>
+                <p style="font-size: 0.7rem; color: #b5a499; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px;">
+                    {{ trip.start_date }} — {{ trip.end_date }}
+                </p>
+                <h2 style="font-weight: 300; margin-bottom: 15px;">{{ trip.title }}</h2>
+                <p style="color: #666; max-width: 800px; white-space: pre-wrap;">{{ trip.itinerary }}</p>
+            </div>
+            <div>
+                <span class="badge {% if trip.status == 'Completed' %}bg-light text-dark{% else %}bg-dark{% endif %}" style="padding: 8px 15px; font-weight: 300; letter-spacing: 1px;">
+                    {{ trip.status }}
+                </span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

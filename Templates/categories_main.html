@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-header">
+    <h1>Explore <span>Categories</span></h1>
+</div>
+
+<div style="padding: 0 8% 80px;">
+    <div class="row g-4">
+        {% for cat in categories %}
+        <div class="col-md-6 col-lg-3">
+            <a href="{{ url_for('category_detail', name=cat.name) }}" style="text-decoration: none; color: inherit;">
+                <div style="position: relative; height: 400px; overflow: hidden; border-radius: 2px; background-color: #e5e0dd;">
+                    {# Ensure cat.photo exists; if not, the backend must pass the most recent photo for this category #}
+                    {% if cat.photo %}
+                        <img src="{{ url_for('static', filename='uploads/' + cat.photo.url) }}" 
+                             alt="{{ cat.name }}"
+                             style="width: 100%; height: 100%; object-fit: cover; transition: 0.6s;" 
+                             onmouseover="this.style.transform='scale(1.05)'" 
+                             onmouseout="this.style.transform='scale(1)'">
+                    {% else %}
+                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #b5a499; font-size: 0.8rem; letter-spacing: 2px; text-align: center; padding: 20px;">
+                            NO UPLOADS YET
+                        </div>
+                    {% endif %}
+                    
+                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white;">
+                        <h3 style="margin: 0; letter-spacing: 3px; font-weight: 300; text-transform: uppercase; font-size: 1.2rem;">{{ cat.name }}</h3>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-header">
+    <h1>Edit <span>{% if type == 'photo' %}Capture{% else %}Trip{% endif %} #{{ item.id }}</span></h1>
+    <a href="/upload" style="text-decoration: none; color: #b5a499; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase;">&larr; Back to Hub</a>
+</div>
+<div style="padding: 0 8% 80px; max-width: 600px;">
+    <div style="background: white; padding: 40px; border-radius: 4px; box-shadow: 10px 10px 0px #e5e0dd;">
+        <form method="POST">
+            {% if type == 'photo' %}
+            <div class="mb-3">
+                <label style="font-size: 0.7rem; color: #b5a499;">CATEGORY</label>
+                <select name="category" class="form-select" style="border-radius: 0;">
+                    <option {% if item.category == 'Wildlife' %}selected{% endif %}>Wildlife</option>
+                    <option {% if item.category == 'Astro' %}selected{% endif %}>Astro</option>
+                    <option {% if item.category == 'Landscape' %}selected{% endif %}>Landscape</option>
+                    <option {% if item.category == 'Mountain' %}selected{% endif %}>Mountain</option>
+                    <option {% if item.category == 'abstract' %}selected{% endif %}>Abstract</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label style="font-size: 0.7rem; color: #b5a499;">STATE</label>
+                <select id="state" name="location" class="form-select" style="border-radius: 0;"></select>
+            </div>
+            <div class="mb-3">
+                <label style="font-size: 0.7rem; color: #b5a499;">CAPTURE DATE</label>
+                <input type="date" name="capture_date" value="{{ item.capture_date }}" class="form-control" style="border-radius: 0;">
+            </div>
+            <div class="mb-4">
+                <label style="font-size: 0.7rem; color: #b5a499;">DESCRIPTION</label>
+                <textarea name="desc" class="form-control" rows="3" style="border-radius: 0;">{{ item.description }}</textarea>
+            </div>
+            {% else %}
+            <div class="mb-3"><label style="font-size: 0.7rem; color: #b5a499;">TRIP TITLE</label><input type="text" name="trip_title" value="{{ item.title }}" class="form-control" style="border-radius: 0;"></div>
+            <div class="row mb-3">
+                <div class="col"><label style="font-size: 0.7rem; color: #b5a499;">START</label><input type="date" name="start_date" value="{{ item.start_date }}" class="form-control" style="border-radius: 0;"></div>
+                <div class="col"><label style="font-size: 0.7rem; color: #b5a499;">END</label><input type="date" name="end_date" value="{{ item.end_date }}" class="form-control" style="border-radius: 0;"></div>
+            </div>
+            <div class="mb-3">
+                <label style="font-size: 0.7rem; color: #b5a499;">STATUS</label>
+                <select name="status" class="form-select" style="border-radius: 0;">
+                    <option value="Upcoming" {% if item.status == 'Upcoming' %}selected{% endif %}>Upcoming</option>
+                    <option value="Completed" {% if item.status == 'Completed' %}selected{% endif %}>Completed</option>
+                </select>
+            </div>
+            <div class="mb-4"><label style="font-size: 0.7rem; color: #b5a499;">ITINERARY</label><textarea name="itinerary" class="form-control" rows="5" style="border-radius: 0;">{{ item.itinerary }}</textarea></div>
+            {% endif %}
+            <button type="submit" style="width: 100%; background: #1a1a1a; color: white; border: none; padding: 15px; text-transform: uppercase; letter-spacing: 3px;">Save Changes</button>
+        </form>
+    </div>
+</div>
+<script>
+    if (document.getElementById("state")) {
+        const states = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi", "Jammu and Kashmir", "Ladakh"];
+        const stateSel = document.getElementById("state");
+        const current = "{{ item.location }}";
+        states.forEach(s => { let opt = new Option(s, s); if(s === current) opt.selected = true; stateSel.options.add(opt); });
+    }
+</script>
+{% endblock %}

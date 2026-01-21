@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+    .puzzle-option {
+        border: 4px solid transparent;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .puzzle-option.selected {
+        border-color: #b5a499;
+        transform: scale(0.95);
+        box-shadow: 0 0 15px rgba(181, 164, 153, 0.4);
+    }
+    .puzzle-piece {
+        border: 0.5px solid rgba(255,255,255,0.3);
+        cursor: grab;
+    }
+    .puzzle-piece:active { cursor: grabbing; }
+    
+    #puzzle-board {
+        display: inline-grid;
+        gap: 2px;
+        background: #eee;
+        border: 4px solid #b5a499;
+    }
+    
+    .digital-dashboard {
+    display: flex;             /* Aligns children side-by-side */
+    justify-content: center;    /* Centers the pair on the screen */
+    gap: 40px;                 /* Adds space between Moves and Time */
+    margin-bottom: 30px;
+    }
+
+/* Updated ID selectors to match your requested colors */
+    #move-count {
+    color: #4f3a1b;
+    text-shadow: 0 0 12px rgba(69, 51, 36, 0.8);
+    font-family: monospace;
+    font-size: 2.5rem;
+    }
+
+    #timer {
+    color: #4f3a1b;
+    text-shadow: 0 0 12px rgba(69, 51, 36, 0.8);
+    font-family: monospace;
+    font-size: 2.5rem;
+    }
+
+    /* Styling for the label text above the numbers */
+    .digital-label {
+    display: block;
+    color: #b5a499;
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-align: center;
+    }
+    /* THE FIX: Force the button to the top layer */
+    #control-panel {
+    position: relative;
+    z-index: 1000 !important;
+    }
+
+    #start-game-btn {
+    background: #b5a499;       /* The signature brown color */
+    color: white;             /* White text */
+    border: none;             /* Remove the thin black box line */
+    padding: 15px 50px;       /* Match the size of the first button */
+    letter-spacing: 3px;      /* Professional spaced-out look */
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.3s ease;
+    z-index: 1000;            /* Keeps it clickable */
+    position: relative;
+    }
+
+    #start-game-btn:hover {
+    background: #a39387;       /* Slightly darker on hover */
+    }
+
+    /* Ensure the board doesn't block the button's click area */
+    .board-wrapper {
+        position: relative;
+        z-index: 1;
+    }
+
+    .locked-board {
+        pointer-events: none !important; /* Pieces physically cannot be touched */
+        opacity: 0.6;
+        filter: grayscale(0.5) blur(1px);
+    }
+    
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Photo <span>Puzzle</span></h1>
+</div>
+
+<div id="setup-container" style="max-width: 900px; margin: 0 auto; text-align: center;">
+    <h3 style="color: #b5a499; font-weight: 300; margin-bottom: 20px; letter-spacing: 2px;">1. SELECT YOUR IMAGE</h3>
+    
+    <div class="image-selector" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; max-height: 350px; overflow-y: auto; padding: 15px; background: #f9f9f9;">
+        {% for photo in photos %}
+        <div class="puzzle-option" onclick="pickImage(this, '{{ url_for('static', filename='uploads/' + photo.url) }}')">
+            <img src="{{ url_for('static', filename='uploads/' + photo.url) }}" style="width: 100%; height: 100px; object-fit: cover;">
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="margin-bottom: 30px;">
+        <h3 style="color: #b5a499; font-weight: 300; margin-bottom: 15px; letter-spacing: 2px;">2. CHOOSE DIFFICULTY</h3>
+        <select id="diff-select" style="padding: 10px 20px; border: 1px solid #b5a499; background: white; letter-spacing: 2px;">
+            <option value="3">EASY (3x3)</option>
+            <option value="5">MEDIUM (5x5)</option>
+            <option value="8">HARD (8x8)</option>
+        </select>
+    </div>
+
+    <button id="playBtn" onclick="launchGame()" style="background: #ccc; color: white; border: none; padding: 15px 50px; letter-spacing: 3px; cursor: not-allowed;" disabled>CREATE PUZZLE</button>
+</div>
+
+<div id="game-container" style="display: none; text-align: center; padding-bottom: 50px;">
+    
+    <div class="digital-dashboard" style="margin-bottom: 30px;">
+        <div class="digital-module">
+            <span class="digital-label">MOVES</span>
+            <div class="digital-screen"><span id="move-count">000</span></div>
+        </div>
+        <div class="digital-module">
+            <span class="digital-label">TIME</span>
+            <div class="digital-screen"><span id="timer">00:00</span></div>
+        </div>
+    </div>
+
+    <div id="control-panel">
+        <button id="start-game-btn" onclick="startPlaying()">START GAME</button>
+    </div>
+
+    <div class="board-wrapper">
+        <div id="puzzle-board" class="locked-board"></div>
+    </div>
+
+    <div id="win-msg" style="display: none; margin-top: 30px;">
+    <h2 style="color: #b5a499; letter-spacing: 5px;">WELL DONE!</h2>
+    <button onclick="window.location.reload()" 
+            style="padding: 12px 25px; cursor: pointer; border: 1px solid #b5a499; color: #b5a499; background: none;">
+        PLAY AGAIN
+    </button>
+</div>
+
+    </div>
+<script>
+    let chosenUrl = "";
+    let gSize = 3;
+
+    // This function handles the selection visually and stores the URL
+    function pickImage(element, url) {
+        // Remove 'selected' class from all options
+        document.querySelectorAll('.puzzle-option').forEach(opt => opt.classList.remove('selected'));
+        
+        // Add to clicked one
+        element.classList.add('selected');
+        
+        chosenUrl = url;
+        
+        // Enable button
+        const btn = document.getElementById('playBtn');
+        btn.disabled = false;
+        btn.style.background = "#b5a499";
+        btn.style.cursor = "pointer";
+    }
+
+    function launchGame() {
+        if (!chosenUrl) return;
+        gSize = parseInt(document.getElementById('diff-select').value);
+        
+        document.getElementById('setup-container').style.display = 'none';
+        document.getElementById('game-container').style.display = 'block';
+        
+        createBoard();
+    }
+
+    function createBoard() {
+        const board = document.getElementById('puzzle-board');
+        const bSize = Math.min(window.innerWidth * 0.9, 500); 
+        const pSize = bSize / gSize;
+        
+        board.style.gridTemplateColumns = `repeat(${gSize}, ${pSize}px)`;
+        
+        let indices = [];
+        for(let i=0; i < gSize*gSize; i++) indices.push(i);
+        
+        // Shuffle
+        indices.sort(() => Math.random() - 0.5);
+        
+        indices.forEach(idx => {
+            const tile = document.createElement('div');
+            tile.className = 'puzzle-piece';
+            tile.style.width = pSize + 'px';
+            tile.style.height = pSize + 'px';
+            tile.style.backgroundImage = `url('${chosenUrl}')`;
+            tile.style.backgroundSize = `${bSize}px ${bSize}px`;
+            
+            const r = Math.floor(idx / gSize);
+            const c = idx % gSize;
+            tile.style.backgroundPosition = `-${c * pSize}px -${r * pSize}px`;
+            
+            tile.draggable = true;
+            tile.dataset.actual = idx;
+            
+            tile.onsystdragstart = (e) => { window.draggedTile = tile; };
+            tile.addEventListener('dragstart', function() { window.draggedTile = this; });
+            tile.addEventListener('dragover', (e) => e.preventDefault());
+            tile.addEventListener('drop', handleTileDrop);
+            
+            board.appendChild(tile);
+        });
+    }
+
+    function handleTileDrop() {
+        const startBg = window.draggedTile.style.backgroundPosition;
+        const startIdx = window.draggedTile.dataset.actual;
+        
+        window.draggedTile.style.backgroundPosition = this.style.backgroundPosition;
+        window.draggedTile.dataset.actual = this.dataset.actual;
+        
+        this.style.backgroundPosition = startBg;
+        this.dataset.actual = startIdx;
+        
+        verifyWin();
+    }
+
+    function verifyWin() {
+        const tiles = document.querySelectorAll('.puzzle-piece');
+        let correctCount = 0;
+        tiles.forEach((t, i) => {
+            if(parseInt(t.dataset.actual) === i) correctCount++;
+        });
+        
+        if(correctCount === gSize * gSize) {
+            document.getElementById('win-msg').style.display = 'block';
+        }
+    }
+
+    
+    // Global Variables
+    let selectedImageUrl = "";
+    let gridSize = 3;
+    let isGameActive = false;
+    let moves = 0;
+    let seconds = 0;
+    let timerInterval = null;
+
+    function startGame() {
+        if (!selectedImageUrl) return;
+        gridSize = parseInt(document.getElementById('difficulty').value);
+        document.getElementById('setup-container').style.display = 'none';
+        document.getElementById('game-container').style.display = 'block';
+        
+        // Reset stats for a new game
+        moves = 0;
+        seconds = 0;
+        document.getElementById('move-count').innerText = "000";
+        document.getElementById('timer').innerText = "00:00";
+        
+        isGameActive = false; 
+        initPuzzle(); 
+    }
+
+    function startPlaying() {
+        isGameActive = true; 
+        
+        // Unlock Board
+        const board = document.getElementById('puzzle-board');
+        if (board) {
+            board.classList.remove('locked-board');
+            board.style.pointerEvents = "auto"; 
+        }
+
+        // Hide Button
+        const panel = document.getElementById('control-panel');
+        if (panel) panel.style.display = 'none';
+
+        // START THE TIMER
+        startTimer();
+
+        // Enable Dragging
+        document.querySelectorAll('.puzzle-piece').forEach(p => {
+            p.setAttribute('draggable', 'true');
+            p.style.cursor = 'grab';
+        });
+    }
+
+    function startTimer() {
+        // Clear any existing timer first to prevent "double speed"
+        if (timerInterval) clearInterval(timerInterval);
+        
+        timerInterval = setInterval(() => {
+            seconds++;
+            let mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+            let secs = (seconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer').innerText = `${mins}:${secs}`;
+        }, 1000);
+    }
+
+    // Update your drop handler to count moves
+    function handleTileDrop() {
+    if (!isGameActive) return;
+
+    // ... your existing swap logic ...
+    const startBg = window.draggedTile.style.backgroundPosition;
+    const startIdx = window.draggedTile.dataset.actual;
+    
+    window.draggedTile.style.backgroundPosition = this.style.backgroundPosition;
+    window.draggedTile.dataset.actual = this.dataset.actual;
+    
+    this.style.backgroundPosition = startBg;
+    this.dataset.actual = startIdx;
+
+    // Update Move Count
+    moves++;
+    document.getElementById('move-count').innerText = moves.toString().padStart(3, '0');
+
+    // THIS LINE IS CRITICAL:
+    verifyWin(); 
+}
+    
+    function verifyWin() {
+    const tiles = document.querySelectorAll('.puzzle-piece');
+    let correctCount = 0;
+    
+    tiles.forEach((tile, i) => {
+        // We compare the piece's stored original index to its current position 'i'
+        if (parseInt(tile.dataset.actual) === i) {
+            correctCount++;
+        }
+    });
+
+    // If every single tile is in the right spot
+    if (correctCount === gridSize * gridSize) {
+        isGameActive = false; // Lock the game
+        
+        // 1. STOP THE TIMER
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+
+        // 2. SHOW THE WIN MESSAGE AND PLAY AGAIN BUTTON
+        const winMsg = document.getElementById('win-msg');
+        if (winMsg) {
+            winMsg.style.display = 'block';
+        }
+        
+        console.log("Victory! All pieces matched.");
+    }
+    }
+</script>
+{% endblock %}

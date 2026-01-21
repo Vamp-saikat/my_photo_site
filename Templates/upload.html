@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-header"><h1>Management <span>Hub</span></h1></div>
+<div style="padding: 0 8% 80px;">
+    <div class="row g-5">
+        <div class="col-lg-6">
+            <div style="background: white; padding: 40px; box-shadow: 10px 10px 0px #e5e0dd;">
+                <h3 style="font-weight: 300; margin-bottom: 25px;">Upload Capture</h3>
+                <form action="/upload" method="POST" enctype="multipart/form-data">
+                    <input type="file" name="image" class="form-control mb-3" required>
+                    <select name="category" class="form-select mb-3" required>
+                        <option value="Wildlife">Wildlife</option><option value="Astro">Astro</option>
+                        <option value="Landscape">Landscape</option><option value="Mountain">Mountain</option>
+                        <option value="abstract">Abstract</option>
+                    </select>
+                    <select id="state" name="location" class="form-select mb-3" required><option value="">Select State</option></select>
+                    <input type="date" name="capture_date" class="form-control mb-3" required>
+                    <textarea name="desc" placeholder="Description" class="form-control mb-4"></textarea>
+                    <button type="submit" style="width: 100%; background: #1a1a1a; color: white; border: none; padding: 15px; text-transform: uppercase; letter-spacing: 2px;">Publish</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div style="background: white; padding: 40px; box-shadow: 10px 10px 0px #e5e0dd;">
+                <h3 style="font-weight: 300; margin-bottom: 25px;">Schedule Expedition</h3>
+                <form action="/upload" method="POST">
+                    <input type="text" name="trip_title" placeholder="Trip Destination" class="form-control mb-3" required>
+                    <div class="row mb-3">
+                        <div class="col"><label style="font-size: 0.6rem;">START</label><input type="date" name="start_date" class="form-control"></div>
+                        <div class="col"><label style="font-size: 0.6rem;">END</label><input type="date" name="end_date" class="form-control"></div>
+                    </div>
+                    <textarea name="itinerary" placeholder="Itinerary Details" class="form-control mb-4" rows="4"></textarea>
+                    <button type="submit" style="width: 100%; background: #b5a499; color: white; border: none; padding: 15px; text-transform: uppercase; letter-spacing: 2px;">Add Trip</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <h6 class="text-uppercase" style="letter-spacing: 2px;">Captures</h6>
+            <table class="table bg-white shadow-sm mt-3">
+                {% for photo in photos %}
+                <tr><td>#{{ photo.id }}</td><td>{{ photo.location }}</td><td class="text-end">
+                    <a href="{{ url_for('edit_photo', id=photo.id) }}" class="text-dark me-2"><span class="material-icons">edit</span></a>
+                    <a href="{{ url_for('delete_photo', id=photo.id) }}" class="text-danger"><span class="material-icons">delete</span></a>
+                </td></tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="col-md-6">
+            <h6 class="text-uppercase" style="letter-spacing: 2px;">Expeditions</h6>
+            <table class="table bg-white shadow-sm mt-3">
+                {% for trip in trips %}
+                <tr><td>#{{ trip.id }}</td><td>{{ trip.title }}</td><td class="text-end">
+                    <a href="{{ url_for('edit_trip', id=trip.id) }}" class="text-dark me-2"><span class="material-icons">edit</span></a>
+                    <a href="{{ url_for('delete_trip', id=trip.id) }}" class="text-danger"><span class="material-icons">delete</span></a>
+                </td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+<script>
+    const states = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi", "Jammu and Kashmir", "Ladakh"];
+    states.forEach(s => document.getElementById("state").options.add(new Option(s, s)));
+</script>
+{% endblock %}

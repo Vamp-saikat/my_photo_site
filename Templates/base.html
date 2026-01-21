@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xkelet0n | Photography</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        body { 
+            margin: 0; background-color: #f2f0ef; color: #1a1a1a; 
+            font-family: 'Georgia', serif; display: flex; 
+            min-height: 100vh; overflow-x: hidden; 
+        }
+
+        /* TELESCOPING BRAND NAME */
+        .fixed-brand {
+            position: fixed; top: 45px; left: 20px; font-size: 2.2rem;
+            font-weight: 300; z-index: 4000; 
+        /* REMOVED pointer-events: none to allow clicking */
+            white-space: nowrap; display: flex; align-items: baseline;
+        }
+
+        /* Ensure the link looks like plain text */
+        .fixed-brand a {
+            text-decoration: none;
+            color: #3d3a38;
+            display: flex;
+            align-items: baseline;
+            letter-spacing: -1px;
+            text-transform: lowercase;
+        }
+
+        .brand-suffix {
+            display: inline-block; max-width: 0; opacity: 0; overflow: hidden;
+            transition: max-width 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+            vertical-align: bottom;
+        }
+
+        /* UPDATED SELECTOR: Added 'a' to the path so the animation triggers correctly */
+        .sidebar:hover ~ .fixed-brand a .brand-suffix { 
+             max-width: 300px; 
+             opacity: 1; 
+        }
+        
+        /* MATTE GLASS SIDEBAR */
+        .sidebar { 
+            width: 70px; height: 100vh; background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(30px) saturate(200%); -webkit-backdrop-filter: blur(30px) saturate(200%);
+            position: fixed; left: 0; top: 0; overflow: hidden; 
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 3000;
+            border-right: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column;
+        }
+        .sidebar:hover { width: 260px; background: rgba(255, 255, 255, 0.1); }
+        .nav-items { margin-top: 140px; }
+        .sidebar a { 
+            padding: 20px 22px; text-decoration: none; font-size: 0.9rem; 
+            letter-spacing: 2px; color: #1a1a1a; display: flex; 
+            align-items: center; transition: 0.2s; 
+        }
+        .sidebar a:hover { color: #b5a499; background: rgba(255, 255, 255, 0.2); }
+        .nav-text { opacity: 0; margin-left: 25px; transition: opacity 0.3s; font-weight: bold; text-transform: uppercase; }
+        .sidebar:hover .nav-text { opacity: 1; }
+        .material-icons { font-size: 26px; color: #2d2a28; }
+
+        .main-content { 
+            margin-left: 70px; width: calc(100% - 70px); position: relative; padding: 40px; 
+        }
+
+        /* --- PHOTO GRID & FLIP CARD SYSTEM --- */
+        .page-header { margin-bottom: 40px; padding-top: 20px; }
+        .page-header h1 { font-weight: 300; font-size: 2.5rem; text-transform: lowercase; }
+        .page-header span { color: #b5a499; font-style: italic; }
+
+        .photo-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 30px; 
+        }
+
+        .photo-card { 
+            height: 400px; /* Controlled height to prevent "too large" images */
+            perspective: 1000px; background-color: transparent; 
+        }
+
+        .card-inner { 
+            position: relative; width: 100%; height: 100%; 
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); 
+            transform-style: preserve-3d; cursor: pointer;
+        }
+
+        .photo-card:hover .card-inner { transform: rotateY(180deg); }
+
+        .card-front, .card-back { 
+            position: absolute; width: 100%; height: 100%; 
+            -webkit-backface-visibility: hidden; backface-visibility: hidden; 
+            border-radius: 4px; overflow: hidden; border: 1px solid rgba(0,0,0,0.05); 
+        }
+
+        .card-front img { width: 100%; height: 100%; object-fit: cover; }
+
+        .card-back { 
+            background: #ffffff; color: #1a1a1a; transform: rotateY(180deg); 
+            padding: 30px; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; text-align: center; 
+        }
+
+        .photo-id { font-size: 0.7rem; color: #b5a499; letter-spacing: 2px; margin-bottom: 10px; }
+        .card-back h5 { font-weight: 400; font-size: 1.1rem; margin-bottom: 15px; letter-spacing: 1px; }
+        .card-back p { font-size: 0.85rem; color: #666; line-height: 1.6; font-family: 'Inter', sans-serif; }
+
+                /* --- RECENT WORK SLIDER SYSTEM --- */
+        .slider-viewport {
+        width: 100%;
+        position: relative;
+        padding: 60px 0; /* More vertical breathing room */
+        overflow: hidden;
+    }
+
+    .slider-track {
+        display: flex;
+        align-items: center;
+        transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .slider-item {
+        min-width: 25%; /* 4 images visible */
+        padding: 0 10px;
+        transition: transform 0.8s ease;
+        opacity: 1; /* REMOVED BLUR/FADE - all images clear */
+        transform: scale(0.9); /* Non-active images are slightly smaller */
+        cursor: zoom-in;
+    }
+
+    /* THE 3RD IMAGE (ACTIVE) FOCUS */
+    .slider-item.active {
+        transform: scale(1.15); /* Center image pops out more */
+        z-index: 10;
+    }
+
+    .slider-item img {
+        width: 100%;
+        height: 250px; /* SHORTER HEIGHT for wide look */
+        object-fit: cover;
+        border-radius: 4px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+        /* LIGHTBOX & FOOTER */
+        #lightbox {
+            display: none; position: fixed; z-index: 5000; top: 0; left: 0; 
+            width: 100%; height: 100%; background: rgba(0,0,0,0.95); 
+            cursor: zoom-out; align-items: center; justify-content: center;
+        }
+        #lightbox img { max-width: 90%; max-height: 90%; border-radius: 5px; }
+        footer { text-align: center; padding: 80px 0; color: #b5a499; font-size: 0.8rem; letter-spacing: 2px; text-transform: lowercase; }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="sidebar">
+        <div class="nav-items">
+            <a href="/"><span class="material-icons">home</span><span class="nav-text">Home</span></a>
+            <a href="/categories"><span class="material-icons">category</span><span class="nav-text">Categories</span></a>
+            <a href="/location"><span class="material-icons">place</span><span class="nav-text">Locations</span></a>
+            <a href="/trips"><span class="material-icons">map</span><span class="nav-text">Trips</span></a>
+            <a href="/puzzle"><span class="material-icons">extension</span><span class="nav-text">Puzzle</span></a>
+            <a href="/upload"><span class="material-icons">cloud_upload</span><span class="nav-text">Upload</span></a>
+            <a href="/about"><span class="material-icons">person</span><span class="nav-text">About</span></a>
+        </div>
+    </div>
+
+    <div class="fixed-brand">
+    <a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: baseline;">
+        x<span class="brand-suffix">kelet0n</span>
+    </a>
+    </div>
+
+    <div id="lightbox" onclick="this.style.display='none'">
+        <img id="lightbox-img" src="">
+    </div>
+
+    <div class="main-content">
+        {% block content %}{% endblock %}
+        <footer>made with <span style="color: #ff4d4d;">❤</span> by xkelet0n</footer>
+    </div>
+
+    <script>
+    function openFullscreen(imgSrc) {
+        // Find the lightbox elements
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        
+        // Set the source and show the lightbox
+        if (lightbox && lightboxImg) {
+            lightboxImg.src = imgSrc;
+            lightbox.style.display = 'flex';
+        }
+    }
+    </script>
+</body>
+</html>
