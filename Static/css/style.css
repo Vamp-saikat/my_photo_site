@@ -1,0 +1,134 @@
+/* --- COMPACT FLIP CARD SYSTEM --- */
+.photo-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+    gap: 25px; 
+    padding: 20px 0; 
+}
+
+.photo-card { 
+    height: 350px; 
+    perspective: 1000px; 
+    background-color: transparent;
+}
+
+.card-inner { 
+    position: relative; 
+    width: 100%; 
+    height: 100%; 
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+    transform-style: preserve-3d; 
+}
+
+.photo-card:hover .card-inner { 
+    transform: rotateY(180deg); 
+}
+
+.card-front, .card-back { 
+    position: absolute; 
+    width: 100%; 
+    height: 100%; 
+    -webkit-backface-visibility: hidden; 
+    backface-visibility: hidden; 
+    border-radius: 8px; 
+    overflow: hidden; 
+    border: 1px solid #e5e0dd; 
+}
+
+.card-front img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+}
+
+.card-back { 
+    background: #ffffff; 
+    color: #1a1a1a; 
+    transform: rotateY(180deg); 
+    padding: 20px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    text-align: center;
+}
+
+/* --- THEME-ALIGNED JIGSAW DASHBOARD --- */
+
+.stats-dashboard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    margin: 0 auto 40px auto;
+    padding: 20px 50px;
+    background: rgba(255, 255, 255, 0.9);
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    max-width: fit-content;
+}
+
+.stat-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-group .label {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: #b5a499; /* Your theme color */
+    margin-bottom: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Minimalist Digital Timer */
+.digital-clock {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 2.2rem;
+    color: #2d2a28;
+    padding: 4px 18px;
+    background: #fdfdfd;
+    border-left: 4px solid #b5a499; /* Theme color accent */
+    line-height: 1;
+}
+
+/* Mechanical Move Counter */
+.machine-counter {
+    background: #2d2a28; /* Professional dark contrast */
+    padding: 6px 20px;
+    border-radius: 3px;
+    box-shadow: 0 4px 0 #b5a499; /* Theme color base shadow */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#move-count {
+    font-family: 'Georgia', serif;
+    font-size: 2.2rem;
+    color: #ffffff;
+    letter-spacing: 3px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 50px;
+    background: #e5e0dd;
+}
+
+/* Puzzle Piece Overrides for Interlocking Look */
+.puzzle-piece {
+    cursor: grab;
+    filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1));
+    transition: transform 0.2s ease;
+}
+
+.puzzle-piece:active {
+    cursor: grabbing;
+    transform: scale(1.02);
+    z-index: 10;
+}
